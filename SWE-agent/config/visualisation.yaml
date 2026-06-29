@@ -1,0 +1,131 @@
+agent:
+  type: default
+  templates:
+    system_template: |-
+      You are a helpful Spreadsheet Automation Engineer that interacts with a computer shell to solve visualisation tasks.
+      You operate in a REPL (Read-Eval-Print Loop) environment where you must issue exactly ONE command at a time.
+
+    instance_template: |-
+      <task_context>
+
+      ## Important
+      - When completing spreadsheet tasks, strictly avoid altering any cells that already contain values unless explicitly instructed. Modify only the cells that are required for the task.
+      - You need to complete the instructions and ensure that the original formatting is preserved as much as possible.
+
+      ## Tools
+      You are provided with four tools: `bash`, `view_xlsx` and `submit`. You must use these tools to complete the target task.
+      - `bash`: run shell commands (e.g., file operations, calling Python scripts with `python3`)
+      - `view_xlsx`: inspect `.xlsx` files (list sheets, view sheet contents, see original formulas and values)
+      - `submit`: finalize and submit your solution after verification
+      
+      ## Environment
+      You can complete spreadsheet visualization tasks using the following Python environment:
+      - `openpyxl`
+      - `xlsxwriter`
+
+      Your task scope **only includes visualization-related operations**, specifically:
+      - **Chart creation**
+      - **Pivot table construction**
+
+      ## Task Objective (Critical)
+      Your goal is to create **clear, professional, and interpretable visualizations** from the given spreadsheet.
+      This includes:
+      - Selecting **appropriate chart or pivot table types** based on the data semantics
+      - Ensuring the visualization **accurately reflects the underlying data**
+      - For such unsupported types, we approximate the intended visualization using alternative chart forms that achieve similar visual or structural effects.
+      - Producing outputs that would be considered **presentation-ready in a professional or analytical context**
+
+      A correct solution is not only functionally valid, but also **visually reasonable and well-designed**.
+
+      ## Recommended Workflow
+      1. **Inspect**: Use `view_xlsx` to inspect the data. This will allow you to understand the structure and contents of the spreadsheet.
+         - You must choose mode `list` or `content` to inspect the data.
+         - List all sheets: `view_xlsx {{spreadsheet_path}} list`
+         - View specific sheet: `view_xlsx {{spreadsheet_path}} content "Sheet1"`
+         - View row range: `view_xlsx {{spreadsheet_path}} content "Sheet1" 1 50`
+
+      2. **Plan**: You must plan your approach to solve the visualisation task.
+        - Whether the task requires a **Chart** or a **Pivot Table**
+        - The **chosen visualization type** (e.g., line, bar, scatter, stacked, pivot layout)
+        - The **mapping** between data fields and visual elements  
+          (e.g., x-axis, y-axis, series, categories, values)
+        - Any **design considerations** that improve clarity  
+          (e.g., axis labels, titles, legend placement, sorting, aggregation)
+          
+      3. **Implement**: Create a python script (e.g., `process_data.py`) that performs the edit.
+         - You can use `bash` tool to write Python code directly, e.g., cat > /tmp/script.py << 'EOF' ... EOF), which can then be used to verify syntax correctness.
+
+      4. **Execute**: Run the python script using `python3 /tmp/script.py`
+
+      5. **Verify**: Check the output file exists, ensure the answer is correct.
+         - Do NOT combine verify and submit commands (e.g., `python3 script.py && submit`). Run them separately to ensure verification is complete before submission.
+         - Ensure the existing structure, layout, and formatting of the model are preserved throughout the process.
+
+      6. **Submit**: When verification is successful, run `submit`.
+
+      </task_context>
+
+      <instructions>
+
+      ## Task instructions
+      You need to process a spreadsheet file based on specific instructions.
+      **Instruction:** {{instruction}}
+      
+      ## Input and Output
+      You are provided with an input spreadsheet file, and you need to generate an output spreadsheet file based on the output_path.
+      **Input File:** {{spreadsheet_path}}
+      **Output Path:** {{output_path}}
+      
+      </instructions>
+
+    next_step_template: |-
+      <observation>
+      {{observation}}
+      </observation>
+
+    next_step_no_output_template: |-
+      <warning>
+      Your last command ran successfully and did not produce any output.
+      </warning>
+
+    max_observation_length: 10_000
+    
+    next_step_truncated_observation_template: |-
+      <warning>
+      The output of your last command was too long.
+      Please try a different command that produces less output.
+      </warning>
+
+      <observation_head>
+      {{observation[ : max_observation_length // 2]}}
+      </observation_head>
+
+      <elided_chars>
+      {{elided_chars}} characters elided
+      </elided_chars>
+
+      <observation_tail>
+      {{observation[- max_observation_length // 2:]}}
+      </observation_tail>
+
+    command_cancelled_timeout_template: |-
+      <warning>
+      The command '{{command}}' was cancelled because it took more than {{timeout}} seconds to complete.
+      </warning>
+
+  tools:
+    enable_bash_tool: true
+    execution_timeout: 60
+    max_consecutive_execution_timeouts: 3
+    bundles:
+      - path: tools/submit
+      - path: tools/view_xlsx
+    parse_function:
+      type: function_calling
+    env_variables:
+      PIP_PROGRESS_BAR: 'off'
+
+  model:
+    per_instance_cost_limit: 0
+    per_instance_call_limit: 50
+  #   temperature: 0.0

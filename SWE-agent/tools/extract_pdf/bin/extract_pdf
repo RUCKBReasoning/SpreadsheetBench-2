@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""
+extract_pdf - Extract text from a PDF file into a single .txt file.
+
+- Input:  PDF path
+- Output: A UTF-8 .txt file with all pages' text merged.
+- The script prints only the output path and a hint to use `cat` to view it.
+"""
+import sys
+import pathlib
+import os
+
+import cv2
+import numpy as np
+import pytesseract
+from pdf2image import convert_from_path
+from PIL import Image
+
+
+def preprocess_image(img: Image.Image) -> Image.Image:
+    """Basic preprocessing to improve OCR on table-like content."""
+    img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    binary = cv2.adaptiveThreshold(
+        gray,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        11,
+        2,
+    )
+    denoised = cv2.medianBlur(binary, 3)
+    return Image.fromarray(denoised)
+
+
+def extract_page_text(img: Image.Image, lang: str = "chi_sim+eng") -> str:
+    """Use pytesseract to extract text from a single page image."""
+    custom_config = r"--oem 3 --psm 6 -c preserve_interword_spaces=1"
+    return pytesseract.image_to_string(img, lang=lang, config=custom_config)
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print(f"usage: {pathlib.Path(sys.argv[0]).name} <pdf_path>", file=sys.stderr)
+        return 1
+
+    pdf_path = pathlib.Path(sys.argv[1])
+
+    if not pdf_path.exists():
+        print(f"Error: PDF file '{pdf_path}' does not exist", file=sys.stderr)
+        return 1
+    if not pdf_path.is_file():
+        print(f"Error: '{pdf_path}' is not a file", file=sys.stderr)
+        return 1
+    if pdf_path.suffix.lower() != ".pdf":
+        print(f"Error: expected a .pdf file, got: {pdf_path.suffix}", file=sys.stderr)
+        return 1
+
+    # Output directory: alongside the PDF, in a subfolder
+    output_dir = pathlib.Path("/mnt/spreadsheet_output/")
+    os.makedirs(output_dir, exist_ok=True)
+    text_file = output_dir / (pdf_path.stem + "_text.txt")
+
+    try:
+        # High DPI improves OCR quality
+        images = convert_from_path(str(pdf_path), dpi=300)
+    except Exception as e:
+        print(f"Error converting PDF to images: {e}", file=sys.stderr)
+        return 1
+
+    all_text_chunks = []
+
+    for i, img in enumerate(images):
+        processed_img = preprocess_image(img)
+        page_text = extract_page_text(processed_img)
+        all_text_chunks.append(f"=== Page {i + 1} ===\n{page_text}\n")
+
+    # Save merged text to file
+    with text_file.open("w", encoding="utf-8") as f:
+        f.write("\n".join(all_text_chunks))
+
+    # Only print where the file is, and how to view it
+    print(f"PDF text saved to: {text_file}")
+    print(f"You can view it with: cat {text_file}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

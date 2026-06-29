@@ -1,0 +1,9 @@
+tools:
+  extract_pdf:
+    signature: "extract_pdf <pdf_path>"
+    docstring: "extract text from a PDF file into a combined .txt file"
+    arguments:
+      - name: pdf_path
+        type: string
+        description: "the path to the PDF file to process"
+        required: true
