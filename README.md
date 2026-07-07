@@ -125,7 +125,9 @@ python evaluation/evaluation.py \
 
 Results are written to `results/<Category>/`.
 
-For `Visualization` tasks, use the VLM checklist evaluator with `glm-4.6v`:
+For `Visualization` tasks, use the VLM checklist evaluator with `glm-4.6v`.
+This step should be run on Windows because the evaluator exports chart images
+from `.xlsx` files through the Excel/WPS COM interface:
 
 ```bash
 python evaluation/run_visual_vlm_checklist_eval.py \
