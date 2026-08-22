@@ -21,6 +21,8 @@ SpreadsheetBench 2 is a benchmark for evaluating agents on end-to-end business s
 
 Place the dataset under the `data/` directory. SpreadsheetBench 2 contains four categories:
 
+> **IMPORTANT:** After downloading the dataset and before running any experiments, use `open_spreadsheet` to recalculate both the input and golden files before testing.
+
 | Category            | Description                              |
 | ------------------- | ---------------------------------------- |
 | `Debugging`       | Formula debugging and error correction.  |
