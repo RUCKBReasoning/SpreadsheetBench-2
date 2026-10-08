@@ -15,6 +15,7 @@ SpreadsheetBench 2 is a benchmark for evaluating agents on end-to-end business s
 
 ## 📢 News
 
+- **2026-9**: 🎉SpreadsheetBench 2 has been accepted by Neurips 2026!
 - **2026-6**: 🔥Released the SpreadsheetBench 2 dataset, paper, and code.
 
 ## 📦 Dataset Introduction
