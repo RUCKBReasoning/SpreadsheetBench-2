@@ -163,3 +163,14 @@ The visualization evaluator saves a JSON report next to the output directory by 
 ## 🙏 Acknowledgements
 
  We thank the [SWE-agent](https://github.com/SWE-agent/SWE-agent) for their open-source infrastructure.
+
+## 📚 Citation
+
+```bibtex
+@article{zhu2026spreadsheetbench,
+  title={SpreadsheetBench 2: Evaluating Agents on End-to-End Business Spreadsheet Workflows},
+  author={Zhu, Jian and Zhang, Yuzheng and Ma, Zeyao and Zhang, Bohan and Schoepf, Armin and Woloch, Daniel and Wang, Peter Yiliu and Yang, Guangyu Robert and Jacob, Samuel and Nagisetty, Siddharth and others},
+  journal={arXiv preprint arXiv:2606.29955},
+  year={2026}
+}
+```
